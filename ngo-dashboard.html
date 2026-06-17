@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Food, Share Hope | NGO Dashboard</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Shared stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loader-bowl"></div>
+    <div class="text-muted small">Gathering donation requests…</div>
+  </div>
+
+  <!-- ============ TOP NAVIGATION ============ -->
+  <nav class="dash-navbar">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="brand-lockup">
+        <div class="brand-mark"><i class="bi bi-heart-fill"></i></div>
+        <div class="brand-text">Share Food<br>Share Hope</div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="#" class="nav-pill active"><i class="bi bi-house-fill"></i> Dashboard</a>
+        <a href="#requestsSection" class="nav-pill"><i class="bi bi-inbox-fill"></i> Requests</a>
+
+        <div class="dropdown">
+          <div class="profile-chip" data-bs-toggle="dropdown">
+            <span class="avatar-circle ngo-avatar" id="ngoInitial">N</span>
+            <span class="fw-semibold" id="ngoNameDisplay">NGO</span>
+            <i class="bi bi-chevron-down small text-muted"></i>
+          </div>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><span class="dropdown-item-text text-muted small">Signed in as NGO admin</span></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="logoutUser(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="dash-hero text-center">
+    <i class="bi bi-people-fill line-icon d-none d-md-block" style="position:absolute; top:30px; left:6%; font-size:2.2rem; color:var(--yellow-400);"></i>
+    <i class="bi bi-heart-fill line-icon d-none d-md-block" style="position:absolute; top:20px; right:8%; font-size:1.6rem; color:var(--yellow-400);"></i>
+    <i class="bi bi-truck line-icon d-none d-md-block" style="position:absolute; top:60px; right:5%; font-size:2.2rem; color:var(--yellow-400);"></i>
+    <div class="container content-layer">
+      <h1 class="fw-bold display-6">Connecting Surplus Food With People Who Need It</h1>
+      <p class="text-secondary">Review incoming donations and coordinate pickups for your community.</p>
+      <button class="btn btn-danger" onclick="resetData()">
+    Reset Demo Data
+</button>
+      <div class="divider-flourish">
+        <span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MAIN ============ -->
+  <main class="container pb-5" style="margin-top: -1.5rem; position: relative; z-index: 2;">
+
+    <!-- Stats -->
+    <section class="row g-3 mb-4 fade-in-up">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <span class="stat-icon total"><i class="bi bi-clipboard2-data"></i></span>
+          <div>
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Donations</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <span class="stat-icon pending"><i class="bi bi-hourglass-split"></i></span>
+          <div>
+            <div class="stat-value" id="statPending">0</div>
+            <div class="stat-label">Pending Requests</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <span class="stat-icon accepted"><i class="bi bi-check-circle"></i></span>
+          <div>
+            <div class="stat-value" id="statAccepted">0</div>
+            <div class="stat-label">Accepted Donations</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <span class="stat-icon completed"><i class="bi bi-flag-fill"></i></span>
+          <div>
+            <div class="stat-value" id="statCompleted">0</div>
+            <div class="stat-label">Completed Deliveries</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Donation Requests -->
+    <section id="requestsSection" class="section-card fade-in-up">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+        <div class="section-card-header mb-0">
+          <div class="section-icon-badge"><i class="bi bi-inbox-fill"></i></div>
+          <div class="section-title-wrap">
+            <h3>Donation Requests</h3>
+            <div class="title-underline"></div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm filter-chip active" data-filter="All" onclick="filterRequests('All')">All</button>
+          <button class="btn btn-sm filter-chip" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
+          <button class="btn btn-sm filter-chip" data-filter="Accepted" onclick="filterRequests('Accepted')">Accepted</button>
+          <button class="btn btn-sm filter-chip" data-filter="Completed" onclick="filterRequests('Completed')">Completed</button>
+          <button class="btn btn-sm filter-chip" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-3" id="requestsContainer"></div>
+
+      <div id="requestsEmptyState" class="empty-state d-none">
+        <i class="bi bi-inbox"></i>
+        <p class="mb-0 fw-semibold">No donation requests here</p>
+        <p class="small">New donations from donors will appear in this list automatically.</p>
+      </div>
+    </section>
+
+  </main>
+
+  
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span><i class="bi bi-suit-heart-fill"></i> Thank you for the work you do every day.</span>
+      <span class="small">© 2024 Share Food Share Hope. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Shared app logic -->
+  <script src="script.js"></script>
+  <script>
+    initNgoDashboard();
+  </script>
+</body>
+</html>
