@@ -1,230 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Share Food, Share Hope | Sign In / Sign Up</title>
-
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-  <!-- Shared stylesheet -->
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share Food, Share Hope | Sign In / Sign Up</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Loading overlay -->
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="loader-bowl"></div>
-    <div class="text-muted small">Setting the table…</div>
-  </div>
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loader-bowl"></div>
+  <div class="text-muted small">Setting the table…</div>
+</div>
 
-  <div class="page-shell">
+<div class="page-shell">
+  <div class="blob-corner blob-top-left"></div>
+  <div class="blob-corner blob-bottom-right"></div>
 
-    <!-- Decorative background -->
-    <div class="blob-corner blob-top-left"></div>
-    <div class="blob-corner blob-bottom-right"></div>
+  <header class="content-layer container pt-4">
+    <div class="brand-lockup">
+      <div class="brand-mark"><i class="bi bi-heart-fill"></i></div>
+      <div class="brand-text">Share Food<br>Share Hope</div>
+    </div>
+  </header>
 
-    <i class="bi bi-heart line-icon d-none d-md-block" style="top:520px; left:50px; font-size:1.7rem; color:var(--yellow-400);"></i>
-    <i class="bi bi-heart line-icon d-none d-md-block" style="top:570px; left:90px; font-size:1.3rem; color:var(--yellow-400);"></i>
-    <i class="bi bi-bag-heart line-icon d-none d-md-block" style="top:640px; left:50px; font-size:2.2rem; color:var(--yellow-400);"></i>
-    <i class="bi bi-heart line-icon d-none d-md-block" style="top:90px; right:120px; font-size:1.6rem; color:var(--yellow-400);"></i>
-    <i class="bi bi-egg-fried line-icon d-none d-md-block" style="top:40px; right:60px; font-size:2.4rem; color:var(--yellow-400);"></i>
+  <main class="content-layer container py-4 py-md-5">
+    <div class="auth-card fade-in-up">
 
-    <!-- Top brand bar -->
-    <header class="content-layer container pt-4">
-      <div class="brand-lockup">
-        <div class="brand-mark"><i class="bi bi-heart-fill"></i></div>
-        <div class="brand-text">Share Food<br>Share Hope</div>
+      <!-- PANEL: intro -->
+      <div id="panelIntro" class="auth-panel active text-center">
+        <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
+        <h2 class="fw-bold mb-2">Welcome Back!</h2>
+        <p class="text-secondary mb-3">Join our mission to reduce food waste<br class="d-none d-sm-block">and help those in need.</p>
+        <div class="d-flex justify-content-center mb-3"><span class="role-badge role-badge-target"></span></div>
+        <div class="divider-flourish"><span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span></div>
+        <p class="fw-semibold mb-4">Please sign in or sign up to continue</p>
+        <div class="row g-3 justify-content-center">
+          <div class="col-12 col-sm-6">
+            <button class="btn btn-brand w-100 py-3" onclick="showAuthPanel('panelLogin')">
+              <i class="bi bi-person-circle me-1"></i> Sign In
+              <div class="small fw-normal opacity-75">Access your account</div>
+            </button>
+          </div>
+          <div class="col-12 col-sm-6">
+            <button class="btn btn-outline-brand w-100 py-3" onclick="showAuthPanel('panelRegister')">
+              <i class="bi bi-person-plus me-1"></i> Sign Up
+              <div class="small fw-normal opacity-75">Create a new account</div>
+            </button>
+          </div>
+        </div>
+        <div class="divider-flourish"><span class="line"></span><i class="bi bi-cup-straw"></i><span class="line"></span></div>
+        <p class="text-secondary small mb-0">Small acts of kindness can feed a lifetime of hope.</p>
+        <p class="script-text fs-5">Thank you for making a difference!</p>
       </div>
-    </header>
 
-    <main class="content-layer container py-4 py-md-5">
-      <div class="auth-card fade-in-up">
+      <!-- PANEL: Sign In -->
+      <div id="panelLogin" class="auth-panel text-center">
+        <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
+        <h2 class="fw-bold mb-2">Welcome Back!</h2>
+        <p class="text-secondary mb-3">Log in to continue your journey<br class="d-none d-sm-block">of sharing food and spreading hope.</p>
+        <div class="d-flex justify-content-center mb-3"><span class="role-badge role-badge-target"></span></div>
+        <div class="divider-flourish"><span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span></div>
 
-        <!-- ============ PANEL 1: Role intro / choose Sign In or Sign Up ============ -->
-        <div id="panelIntro" class="auth-panel active text-center">
-          <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
-          <h2 class="fw-bold mb-2">Welcome Back!</h2>
-          <p class="text-secondary mb-3">
-            Join our mission to reduce food waste<br class="d-none d-sm-block">
-            and help those in need.
-          </p>
-          <div class="d-flex justify-content-center mb-3">
-            <span class="role-badge role-badge-target"></span>
-          </div>
-          <div class="divider-flourish">
-            <span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span>
-          </div>
-          <p class="fw-semibold mb-4">Please sign in or sign up to continue</p>
+        <div id="loginError" class="alert alert-danger d-none text-start" role="alert"></div>
 
-          <div class="row g-3 justify-content-center">
-            <div class="col-12 col-sm-6">
-              <button class="btn btn-brand w-100 py-3" onclick="showAuthPanel('panelLogin')">
-                <i class="bi bi-person-circle me-1"></i> Sign In
-                <div class="small fw-normal opacity-75">Access your account</div>
-              </button>
-            </div>
-            <div class="col-12 col-sm-6">
-              <button class="btn btn-outline-brand w-100 py-3" onclick="showAuthPanel('panelRegister')">
-                <i class="bi bi-person-plus me-1"></i> Sign Up
-                <div class="small fw-normal opacity-75">Create a new account</div>
-              </button>
+        <form id="loginForm" class="text-start" onsubmit="loginUser(event)" novalidate>
+          <div class="mb-3">
+            <label for="loginIdentifier" class="form-label fw-semibold">Email or Phone Number</label>
+            <div class="input-icon-group">
+              <i class="bi bi-person field-icon"></i>
+              <input type="text" class="form-control" id="loginIdentifier" placeholder="Enter your email or phone number" autocomplete="username">
             </div>
           </div>
-
-          <div class="divider-flourish">
-            <span class="line"></span><i class="bi bi-cup-straw"></i><span class="line"></span>
+          <div class="mb-2">
+            <label for="loginPassword" class="form-label fw-semibold">Password</label>
+            <div class="input-icon-group">
+              <i class="bi bi-lock field-icon"></i>
+              <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+              <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('loginPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
           </div>
-          <p class="text-secondary small mb-0">Small acts of kindness can feed a lifetime of hope.</p>
-          <p class="script-text fs-5">Thank you for making a difference!</p>
-        </div>
-
-        <!-- ============ PANEL 2: Sign In ============ -->
-        <div id="panelLogin" class="auth-panel text-center">
-          <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
-          <h2 class="fw-bold mb-2">Welcome Back!</h2>
-          <p class="text-secondary mb-3">
-            Log in to continue your journey<br class="d-none d-sm-block">
-            of sharing food and spreading hope.
-          </p>
-          <div class="d-flex justify-content-center mb-3">
-            <span class="role-badge role-badge-target"></span>
+          <div class="text-end mb-3">
+            <a href="#" class="small auth-toggle-link" onclick="showToast('Password reset isn\'t available in this demo yet.', 'info'); return false;">Forgot Password?</a>
           </div>
-          <div class="divider-flourish">
-            <span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span>
-          </div>
+          <button type="submit" class="btn btn-brand w-100 py-3 fw-bold">Login</button>
+        </form>
 
-          <div id="loginError" class="alert alert-danger d-none text-start" role="alert"></div>
-
-          <form id="loginForm" class="text-start" onsubmit="loginUser(event)" novalidate>
-            <div class="mb-3">
-              <label for="loginIdentifier" class="form-label fw-semibold">Name or Email</label>
-              <div class="input-icon-group">
-                <i class="bi bi-person field-icon"></i>
-                <input type="text" class="form-control" id="loginIdentifier" placeholder="Enter your name or email" autocomplete="username">
-              </div>
-            </div>
-            <div class="mb-2">
-              <label for="loginPassword" class="form-label fw-semibold">Password</label>
-              <div class="input-icon-group">
-                <i class="bi bi-lock field-icon"></i>
-                <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
-                <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('loginPassword', this.querySelector('i'))">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-            </div>
-            <div class="text-end mb-3">
-              <a href="#" class="small auth-toggle-link" onclick="showToast('Password reset isn\'t available in this demo yet.', 'info'); return false;">Forgot Password?</a>
-            </div>
-            <button type="submit" class="btn btn-brand w-100 py-3 fw-bold">Login</button>
-          </form>
-
-          <p class="text-center mt-4 mb-0">
-            Don't have an account?
-            <a href="#" class="auth-toggle-link" onclick="showAuthPanel('panelRegister'); return false;">Sign Up</a>
-          </p>
-          <p class="text-center mt-2">
-            <a href="#" class="text-muted small" onclick="showAuthPanel('panelIntro'); return false;"><i class="bi bi-arrow-left"></i> Back</a>
-          </p>
-        </div>
-
-        <!-- ============ PANEL 3: Sign Up ============ -->
-        <div id="panelRegister" class="auth-panel text-center">
-          <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
-          <h2 class="fw-bold mb-2">Create an Account</h2>
-          <p class="text-secondary mb-3">
-            Sign up to join our mission and start<br class="d-none d-sm-block">
-            making a difference.
-          </p>
-          <div class="d-flex justify-content-center mb-3">
-            <span class="role-badge role-badge-target"></span>
-          </div>
-          <div class="divider-flourish">
-            <span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span>
-          </div>
-
-          <div id="signupError" class="alert alert-danger d-none text-start" role="alert"></div>
-
-          <form id="signupForm" class="text-start" onsubmit="signupUser(event)" novalidate>
-            <div class="mb-3">
-              <label for="signupName" class="form-label fw-semibold">Name</label>
-              <div class="input-icon-group">
-                <i class="bi bi-person field-icon"></i>
-                <input type="text" class="form-control" id="signupName" placeholder="Enter your full name" autocomplete="name">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="signupPhone" class="form-label fw-semibold">Phone No</label>
-              <div class="input-icon-group">
-                <i class="bi bi-telephone field-icon"></i>
-                <input type="tel" class="form-control" id="signupPhone" placeholder="Enter your phone number" autocomplete="tel">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="signupEmail" class="form-label fw-semibold">Email</label>
-              <div class="input-icon-group">
-                <i class="bi bi-envelope field-icon"></i>
-                <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email address" autocomplete="email">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="signupPassword" class="form-label fw-semibold">Password</label>
-              <div class="input-icon-group">
-                <i class="bi bi-lock field-icon"></i>
-                <input type="password" class="form-control" id="signupPassword" placeholder="Enter your password (min. 8 characters)" autocomplete="new-password">
-                <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('signupPassword', this.querySelector('i'))">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="signupConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
-              <div class="input-icon-group">
-                <i class="bi bi-lock-fill field-icon"></i>
-                <input type="password" class="form-control" id="signupConfirmPassword" placeholder="Re-enter your password" autocomplete="new-password">
-                <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('signupConfirmPassword', this.querySelector('i'))">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-brand w-100 py-3 fw-bold">Register</button>
-          </form>
-
-          <p class="text-center mt-4 mb-0">
-            Already have an account?
-            <a href="#" class="auth-toggle-link" onclick="showAuthPanel('panelLogin'); return false;">Sign In</a>
-          </p>
-          <p class="text-center mt-2">
-            <a href="#" class="text-muted small" onclick="showAuthPanel('panelIntro'); return false;"><i class="bi bi-arrow-left"></i> Back</a>
-          </p>
-        </div>
-
+        <p class="text-center mt-4 mb-0">Don't have an account? <a href="#" class="auth-toggle-link" onclick="showAuthPanel('panelRegister'); return false;">Sign Up</a></p>
+        <p class="text-center mt-2"><a href="#" class="text-muted small" onclick="showAuthPanel('panelIntro'); return false;"><i class="bi bi-arrow-left"></i> Back</a></p>
       </div>
-    </main>
 
-    <footer class="content-layer text-center pb-4">
-      <p class="text-secondary small mb-0">© 2024 Share Food Share Hope. All rights reserved.</p>
-    </footer>
+      <!-- PANEL: Sign Up -->
+      <div id="panelRegister" class="auth-panel text-center">
+        <div class="hero-emblem emblem-sm"><i class="bi bi-cup-hot"></i></div>
+        <h2 class="fw-bold mb-2">Create an Account</h2>
+        <p class="text-secondary mb-3">Sign up to join our mission and start<br class="d-none d-sm-block">making a difference.</p>
+        <div class="d-flex justify-content-center mb-3"><span class="role-badge role-badge-target"></span></div>
+        <div class="divider-flourish"><span class="line"></span><i class="bi bi-heart-fill"></i><span class="line"></span></div>
 
-  </div>
+        <div id="signupError" class="alert alert-danger d-none text-start" role="alert"></div>
 
-  <!-- Bootstrap Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Shared app logic -->
-  <script src="script.js"></script>
-  <script>
-    // If nobody picked a role on the welcome page, default to "user"
-    // so the auth flow still works if someone lands here directly.
-    if (!sessionStorage.getItem("role")) {
-      sessionStorage.setItem("role", "user");
-    }
-    renderRoleBadge();
-  </script>
+        <form id="signupForm" class="text-start" onsubmit="signupUser(event)" novalidate>
+          <div class="mb-3">
+            <label for="signupName" class="form-label fw-semibold">Full Name</label>
+            <div class="input-icon-group">
+              <i class="bi bi-person field-icon"></i>
+              <input type="text" class="form-control" id="signupName" placeholder="Enter your full name" autocomplete="name">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="signupEmail" class="form-label fw-semibold">Email</label>
+            <div class="input-icon-group">
+              <i class="bi bi-envelope field-icon"></i>
+              <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email address" autocomplete="email">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="signupPhone" class="form-label fw-semibold">Phone Number</label>
+            <div class="input-icon-group">
+              <i class="bi bi-telephone field-icon"></i>
+              <input type="tel" class="form-control" id="signupPhone" placeholder="Enter your phone number" autocomplete="tel">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="signupPassword" class="form-label fw-semibold">Password</label>
+            <div class="input-icon-group">
+              <i class="bi bi-lock field-icon"></i>
+              <input type="password" class="form-control" id="signupPassword" placeholder="Min. 8 characters" autocomplete="new-password">
+              <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('signupPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="signupConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
+            <div class="input-icon-group">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input type="password" class="form-control" id="signupConfirmPassword" placeholder="Re-enter your password" autocomplete="new-password">
+              <button type="button" class="toggle-eye" onclick="togglePasswordVisibility('signupConfirmPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-brand w-100 py-3 fw-bold">Register</button>
+        </form>
+
+        <p class="text-center mt-4 mb-0">Already have an account? <a href="#" class="auth-toggle-link" onclick="showAuthPanel('panelLogin'); return false;">Sign In</a></p>
+        <p class="text-center mt-2"><a href="#" class="text-muted small" onclick="showAuthPanel('panelIntro'); return false;"><i class="bi bi-arrow-left"></i> Back</a></p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="content-layer text-center pb-4">
+    <p class="text-secondary small mb-0">© 2024 Share Food Share Hope. All rights reserved.</p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+<script>
+  if (!sessionStorage.getItem("role")) sessionStorage.setItem("role", "user");
+  renderRoleBadge();
+</script>
 </body>
 </html>
