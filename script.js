@@ -189,6 +189,7 @@ const STATUS_CFG={
   Pending:{cls:'pending',icon:'bi-clock-history',label:'Pending'},
   Accepted:{cls:'accepted',icon:'bi-check-circle',label:'Accepted by NGO'},
   VolunteerAssigned:{cls:'vol-assigned',icon:'bi-bicycle',label:'Volunteer Assigned'},
+  QualityCheckPassed:{cls:'quality-passed',icon:'bi-shield-check',label:'Quality Check Passed'},
   OrderPickedUp:{cls:'picked-up',icon:'bi-box-seam',label:'Order Picked Up'},
   OrderReceived:{cls:'received',icon:'bi-house-check',label:'Delivered to NGO'},
   Completed:{cls:'completed',icon:'bi-check2-circle',label:'Completed'},
@@ -197,10 +198,13 @@ const STATUS_CFG={
 function statusPillHtml(status){const c=STATUS_CFG[status]||STATUS_CFG.Pending;return `<span class="status-pill ${c.cls}"><i class="bi ${c.icon}"></i> ${c.label}</span>`;}
 
 /* Volunteer's own micro-status, tracked separately from the donation's
-   overall status (Assigned -> Accepted -> OrderPickedUp -> Delivered). */
+   overall status: Assigned → Accepted → QualityApproved → OrderPickedUp → Delivered
+   (or RejectedPoorQuality on a failed quality check). */
 const VOL_STATUS_CFG={
   Assigned:{cls:'vol-assigned',icon:'bi-bicycle',label:'Volunteer: Assigned'},
   Accepted:{cls:'accepted',icon:'bi-check-circle',label:'Volunteer: Accepted'},
+  QualityApproved:{cls:'quality-passed',icon:'bi-shield-check',label:'Volunteer: Quality Approved'},
+  RejectedPoorQuality:{cls:'rejected',icon:'bi-x-circle',label:'Volunteer: Rejected - Poor Quality'},
   OrderPickedUp:{cls:'picked-up',icon:'bi-box-seam',label:'Volunteer: Order Picked Up'},
   Delivered:{cls:'received',icon:'bi-house-check',label:'Volunteer: Delivered'}
 };
@@ -314,6 +318,7 @@ function donorCardHtml(d,i){
       <div class="col-sm-12 d-flex gap-2 flex-wrap mt-1">${statusPillHtml(d.status)} ${volunteerStatusPillHtml(d.volunteerStatus)}</div>
     </div>
   </div>`:''}
+  ${d.rejectionReason?`<div class="alert alert-warning mt-2 py-2 px-3 small rounded-3 mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i><strong>Rejection Reason:</strong> ${escapeHtml(d.rejectionReason)}</div>`:''}
 </div>`;
 }
 
@@ -537,9 +542,11 @@ function normalizeLegacyVolunteerStatus(){
   let changed=false;
   donations.forEach(d=>{
     if(d.volunteerId&&!d.volunteerStatus){
-      if(d.status==='OrderReceived'||d.status==='Completed')d.volunteerStatus='Delivered';
-      else if(d.status==='OrderPickedUp')d.volunteerStatus='OrderPickedUp';
-      else d.volunteerStatus='Assigned';
+      if(d.status==='Completed'||d.status==='OrderReceived')       d.volunteerStatus='Delivered';
+      else if(d.status==='OrderPickedUp')                          d.volunteerStatus='OrderPickedUp';
+      else if(d.status==='QualityCheckPassed')                     d.volunteerStatus='QualityApproved';
+      else if(d.status==='Rejected'&&d.rejectionReason)            d.volunteerStatus='RejectedPoorQuality';
+      else                                                          d.volunteerStatus='Assigned';
       changed=true;
     }
   });
@@ -628,11 +635,15 @@ function renderCurrentDetail(d){
     const steps=[
       {key:'Assigned',label:'Assigned',icon:'bi-clipboard-check'},
       {key:'Accepted',label:'Accepted',icon:'bi-check-circle'},
+      {key:'QualityApproved',label:'Quality Check',icon:'bi-shield-check'},
       {key:'OrderPickedUp',label:'Order Picked Up',icon:'bi-box-seam'},
       {key:'Delivered',label:'Delivered to NGO',icon:'bi-house-check'}
     ];
-    const order=['Assigned','Accepted','OrderPickedUp','Delivered'];
-    const cidx=order.indexOf(d.volunteerStatus);
+    const order=['Assigned','Accepted','QualityApproved','OrderPickedUp','Delivered'];
+    /* When the volunteer is in QC-pending state (volunteerStatus==='Accepted')
+       we want "Quality Check" to show as the current active step. */
+    const activeKey=d.volunteerStatus==='Accepted'?'QualityApproved':d.volunteerStatus;
+    const cidx=order.indexOf(activeKey);
     stepsEl.innerHTML=`<div class="status-steps">${steps.map((s,i)=>{
       const done=i<cidx,active=i===cidx;
       return `<div class="step ${done?'done':''} ${active?'active':''}">
@@ -644,21 +655,49 @@ function renderCurrentDetail(d){
   }
 
   if(actEl){
-    let btns='';
-    if(d.volunteerStatus==='Assigned'){
-      btns=`<button class="btn btn-success px-4 rounded-pill" onclick="acceptAssignment('${d.donationId}')"><i class="bi bi-check-lg"></i> Accept Assignment</button>
-            <button class="btn btn-outline-danger px-4 rounded-pill" onclick="rejectAssignment('${d.donationId}')"><i class="bi bi-x-lg"></i> Reject</button>`;
-    }else if(d.volunteerStatus==='Accepted'){
-      btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check-lg"></i> Accepted</button>
-            <button class="btn btn-primary px-4 rounded-pill" onclick="markOrderPickedUp('${d.donationId}')"><i class="bi bi-box-seam"></i> Order Picked Up</button>`;
-    }else if(d.volunteerStatus==='OrderPickedUp'){
-      btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check-lg"></i> Accepted</button>
-            <button class="btn btn-primary px-4 rounded-pill" disabled><i class="bi bi-box-seam"></i> Order Picked Up</button>
-            <button class="btn btn-primary px-4 rounded-pill" onclick="markDeliveredToNGO('${d.donationId}')"><i class="bi bi-house-check"></i> Delivered to NGO</button>`;
-    }else if(d.volunteerStatus==='Delivered'){
-      btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check2-all"></i> Delivered — Thank you!</button>`;
+    if(d.volunteerStatus==='Accepted'){
+      /* Quality Check is pending — show the inspection card instead of plain buttons */
+      actEl.innerHTML=`
+        <div class="quality-check-card">
+          <div class="quality-check-header">
+            <i class="bi bi-shield-check"></i>
+            <div>
+              <div class="fw-bold">Food Quality Check</div>
+              <div class="small text-muted mt-1">
+                Inspect the food before pickup. Verify it is safe, fresh, and fit for consumption.
+              </div>
+            </div>
+          </div>
+          <div class="quality-check-actions">
+            <button class="btn btn-success rounded-pill px-4" onclick="approveFoodQuality('${d.donationId}')">
+              <i class="bi bi-shield-check"></i> Quality Approved
+            </button>
+            <button class="btn btn-outline-danger rounded-pill px-4" onclick="rejectDonationByVolunteer('${d.donationId}','Poor Food Quality')">
+              <i class="bi bi-x-circle"></i> Reject Donation
+            </button>
+          </div>
+        </div>`;
+    }else{
+      let btns='';
+      if(d.volunteerStatus==='Assigned'){
+        btns=`<button class="btn btn-success px-4 rounded-pill" onclick="acceptAssignment('${d.donationId}')"><i class="bi bi-check-lg"></i> Accept Assignment</button>
+              <button class="btn btn-outline-danger px-4 rounded-pill" onclick="rejectAssignment('${d.donationId}')"><i class="bi bi-x-lg"></i> Reject</button>`;
+      }else if(d.volunteerStatus==='QualityApproved'){
+        btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check-lg"></i> Accepted</button>
+              <button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-shield-check"></i> Quality Approved</button>
+              <button class="btn btn-primary px-4 rounded-pill" onclick="markOrderPickedUp('${d.donationId}')"><i class="bi bi-box-seam"></i> Order Picked Up</button>`;
+      }else if(d.volunteerStatus==='OrderPickedUp'){
+        btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check-lg"></i> Accepted</button>
+              <button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-shield-check"></i> Quality Approved</button>
+              <button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-box-seam"></i> Picked Up</button>
+              <button class="btn btn-primary px-4 rounded-pill" onclick="markDeliveredToNGO('${d.donationId}')"><i class="bi bi-house-check"></i> Delivered to NGO</button>`;
+      }else if(d.volunteerStatus==='Delivered'){
+        btns=`<button class="btn btn-success px-4 rounded-pill" disabled><i class="bi bi-check2-all"></i> Delivered — Thank you!</button>`;
+      }else if(d.volunteerStatus==='RejectedPoorQuality'){
+        btns=`<button class="btn btn-danger px-4 rounded-pill" disabled><i class="bi bi-x-circle"></i> Rejected — Poor Food Quality</button>`;
+      }
+      actEl.innerHTML=`<div class="d-flex gap-3 flex-wrap">${btns}</div>`;
     }
-    actEl.innerHTML=`<div class="d-flex gap-3 flex-wrap">${btns}</div>`;
   }
 }
 
@@ -725,15 +764,15 @@ function rejectAssignment(donationId){
 }
 
 /**
- * Step 2 — Volunteer has collected the food from the donor.
- * Valid only once the volunteer has already accepted the assignment.
+ * Step 3 — Volunteer has collected the food from the donor.
+ * Valid only once the Food Quality Check has been approved.
  * Advances both the donation's overall status and the volunteer's own
  * micro-status, then syncs every dashboard.
  */
 function markOrderPickedUp(donationId){
   const donation=getDonations().find(d=>d.donationId===donationId);
   if(!donation||donation.volunteerId!==_vol.id){showToast('This assignment is no longer available.','warning');return;}
-  if(donation.volunteerStatus!=='Accepted'){showToast('Please accept the assignment before marking it picked up.','warning');return;}
+  if(donation.volunteerStatus!=='QualityApproved'){showToast('Please complete the Food Quality Check before marking the order as picked up.','warning');return;}
 
   const updated=updateDonationStatus(donationId,{status:'OrderPickedUp',volunteerStatus:'OrderPickedUp'});
   if(!updated)return;
@@ -762,6 +801,95 @@ function markDeliveredToNGO(donationId){
   addNotification(updated.donorId,`Your donation "${updated.foodName}" has been delivered to ${updated.assignedNGO?.name||'the NGO'}.`,donationId,'success');
   addNotification(updated.ngoId,`Volunteer ${_vol.name} delivered "${updated.foodName}" to your location. Please verify and complete.`,donationId,'success');
   showToast('Delivered to NGO! Thank you for your contribution.','success');
+
+  refreshVolunteerDashboard();refreshNGODashboard();refreshDonorDashboard();
+}
+
+/**
+ * performQualityCheck — Called conceptually when the volunteer moves
+ * from 'Accepted' into the inspection step. No localStorage write is
+ * needed here: the QC card is rendered purely from the existing
+ * volunteerStatus === 'Accepted' state. Calling this triggers a
+ * dashboard refresh so the QC card is displayed immediately.
+ * @param {string} donationId
+ */
+function performQualityCheck(donationId){
+  refreshVolunteerDashboard();
+}
+
+/**
+ * approveFoodQuality — Volunteer confirms the food is safe to deliver.
+ * Valid only while volunteerStatus is 'Accepted' (i.e., QC is pending).
+ * Sets volunteerStatus → 'QualityApproved' and donation status →
+ * 'QualityCheckPassed', then notifies the NGO and donor and syncs all
+ * three dashboards.
+ * @param {string} donationId
+ */
+function approveFoodQuality(donationId){
+  const donation=getDonations().find(d=>d.donationId===donationId);
+  if(!donation||donation.volunteerId!==_vol.id){showToast('This assignment is no longer available.','warning');return;}
+  if(donation.volunteerStatus!=='Accepted'){
+    showToast('Quality check is only available right after accepting an assignment.','warning');return;
+  }
+
+  const updated=updateDonationStatus(donationId,{
+    status:'QualityCheckPassed',
+    volunteerStatus:'QualityApproved'
+  });
+  if(!updated)return;
+
+  addNotification(updated.ngoId,
+    `Volunteer ${_vol.name} approved the food quality for "${updated.foodName}". Proceeding with pickup.`,
+    donationId,'success');
+  addNotification(updated.donorId,
+    `Quality check passed for your donation "${updated.foodName}". The volunteer is on the way!`,
+    donationId,'success');
+  showToast('Food quality approved! You can now pick up the donation.','success');
+
+  refreshVolunteerDashboard();refreshNGODashboard();refreshDonorDashboard();
+}
+
+/**
+ * rejectDonationByVolunteer — Volunteer flags the food as unsafe/spoiled.
+ * Valid only while volunteerStatus is 'Accepted' (QC step).
+ * After confirmation: sets status → 'Rejected', volunteerStatus →
+ * 'RejectedPoorQuality', stops the countdown timer, stores the
+ * rejection reason on the donation record, disables all further
+ * buttons, and notifies the NGO and donor with the reason.
+ * @param {string} donationId
+ * @param {string} reason  - human-readable rejection reason
+ */
+function rejectDonationByVolunteer(donationId,reason){
+  reason=reason||'Poor Food Quality';
+  if(!confirm(
+    'Are you sure you want to reject this donation due to poor food quality?\n\n' +
+    'This action cannot be undone and will notify the NGO and donor immediately.'
+  ))return;
+
+  const donation=getDonations().find(d=>d.donationId===donationId);
+  if(!donation||donation.volunteerId!==_vol.id){showToast('This assignment is no longer available.','warning');return;}
+  if(donation.volunteerStatus!=='Accepted'){
+    showToast('Rejection is only available during the Quality Check step.','warning');return;
+  }
+
+  /* Stop the expiry timer immediately so it doesn't keep running */
+  stopCountdown(donationId);
+
+  const updated=updateDonationStatus(donationId,{
+    status:'Rejected',
+    volunteerStatus:'RejectedPoorQuality',
+    rejectionReason:reason
+  });
+  if(!updated)return;
+
+  addNotification(updated.ngoId,
+    `Volunteer ${_vol.name} rejected "${updated.foodName}" due to: ${reason}. Please follow up with the donor.`,
+    donationId,'warning');
+  addNotification(updated.donorId,
+    `Your donation "${updated.foodName}" was rejected by the volunteer. Reason: ${reason}. ` +
+    'Please check the food and consider resubmitting once the issue is resolved.',
+    donationId,'danger');
+  showToast('Donation rejected due to poor food quality. The NGO and donor have been notified.','warning');
 
   refreshVolunteerDashboard();refreshNGODashboard();refreshDonorDashboard();
 }

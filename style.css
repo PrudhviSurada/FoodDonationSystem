@@ -170,6 +170,24 @@ a{text-decoration:none;}::selection{background:var(--yellow-400);color:var(--ink
 .status-pill.completed{color:#1E40AF;background:#EFF6FF;}
 .status-pill.rejected{color:#B91C1C;background:#FEE2E2;}
 
+/* Quality Check ── new status pill colour */
+.status-pill.quality-passed{color:#065F46;background:#D1FAE5;}
+
+/* ── Food Quality Check card (volunteer action area) ─────── */
+.quality-check-card{
+  background:linear-gradient(135deg,#FFFBEB,#FEF3C7);
+  border:1.5px solid #FDE68A;
+  border-radius:var(--r-md);
+  padding:1.25rem 1.4rem;
+}
+.quality-check-header{
+  display:flex;align-items:flex-start;gap:14px;margin-bottom:1.1rem;
+}
+.quality-check-header>i{
+  font-size:2rem;color:#D97706;flex-shrink:0;margin-top:1px;
+}
+.quality-check-actions{display:flex;gap:.75rem;flex-wrap:wrap;}
+
 /* ── Assign info cards (donor dashboard) ────────────────── */
 .assign-info-card{border-radius:var(--r-md);padding:1rem 1.1rem;font-size:.85rem;}
 .assign-info-card.ngo-info{background:#EEF2FF;border:1px solid #C7D2FE;}
