@@ -610,7 +610,7 @@ function renderCurrentDetail(d){
   <div class="row g-3">
     ${d.foodImage?`<div class="col-md-4"><img src="${d.foodImage}" class="img-fluid rounded-3" style="height:170px;object-fit:cover;width:100%"></div>`:''}
     <div class="col-md-${d.foodImage?'4':'6'}">
-      <h6 class="fw-bold small mb-2 d-flex align-items-center gap-2 flex-wrap">${escapeHtml(d.donationId)} ${volunteerStatusPillHtml(d.volunteerStatus)}</h6>
+      <h6 class="fw-bold small mb-2 d-flex align-items-center gap-2 flex-wrap">${escapeHtml(d.donationId)} ${volunteerStatusPillHtml(d.volunteerStatus)} ${qualityChecklistCompletedBadgeHtml(d.volunteerStatus)}</h6>
       <div class="donation-meta-row"><i class="bi bi-person"></i>${escapeHtml(d.donorName)}</div>
       <div class="donation-meta-row"><i class="bi bi-telephone"></i>${escapeHtml(d.donorPhone||d.contact)}</div>
       <div class="donation-meta-row"><i class="bi bi-geo-alt"></i>${escapeHtml(d.address)}</div>
@@ -656,7 +656,8 @@ function renderCurrentDetail(d){
 
   if(actEl){
     if(d.volunteerStatus==='Accepted'){
-      /* Quality Check is pending — show the inspection card instead of plain buttons */
+      /* Quality Check is pending — show the inspection card, which now opens
+         the Food Quality Checklist modal instead of approving/rejecting directly */
       actEl.innerHTML=`
         <div class="quality-check-card">
           <div class="quality-check-header">
@@ -664,16 +665,13 @@ function renderCurrentDetail(d){
             <div>
               <div class="fw-bold">Food Quality Check</div>
               <div class="small text-muted mt-1">
-                Inspect the food before pickup. Verify it is safe, fresh, and fit for consumption.
+                Inspect the food before pickup. Complete the Food Quality Checklist to continue.
               </div>
             </div>
           </div>
           <div class="quality-check-actions">
-            <button class="btn btn-success rounded-pill px-4" onclick="approveFoodQuality('${d.donationId}')">
-              <i class="bi bi-shield-check"></i> Quality Approved
-            </button>
-            <button class="btn btn-outline-danger rounded-pill px-4" onclick="rejectDonationByVolunteer('${d.donationId}','Poor Food Quality')">
-              <i class="bi bi-x-circle"></i> Reject Donation
+            <button class="btn btn-success rounded-pill px-4" onclick="openFoodQualityChecklist('${d.donationId}')">
+              <i class="bi bi-list-check"></i> Start Food Quality Checklist
             </button>
           </div>
         </div>`;
@@ -947,4 +945,131 @@ function toggleSidebar(){
   if(!sb)return;
   const open=sb.classList.toggle('open');
   if(ov)ov.classList.toggle('active',open);
+}
+
+/* =====================================================================
+   FOOD QUALITY CHECKLIST FEATURE
+   ---------------------------------------------------------------------
+   Replaces the old one-click "Quality Approved / Reject Donation"
+   buttons with a Bootstrap modal checklist. The volunteer must tick all
+   five checklist items before "Quality Verified" is enabled. Clicking
+   "Quality Verified" or confirming a rejection reason simply calls the
+   existing, unmodified approveFoodQuality() / rejectDonationByVolunteer()
+   functions so all existing workflow, LocalStorage, and dashboard
+   synchronization logic is reused as-is — no duplicate status logic.
+   ===================================================================== */
+
+// Tracks which donation the checklist modal is currently open for.
+let _qcDonationId=null;
+
+/**
+ * Small helper badge shown on the Volunteer Dashboard's current
+ * assignment card indicating whether the Food Quality Checklist has
+ * been completed for this assignment. Derived entirely from the
+ * existing volunteerStatus value — no new LocalStorage field needed.
+ */
+function qualityChecklistCompletedBadgeHtml(volunteerStatus){
+  const completedStates=['QualityApproved','OrderPickedUp','Delivered','RejectedPoorQuality'];
+  if(!completedStates.includes(volunteerStatus))return'';
+  return `<span class="badge rounded-pill bg-light text-dark border small"><i class="bi bi-clipboard2-check text-success"></i> Quality Checklist Completed</span>`;
+}
+
+/**
+ * Opens the Food Quality Checklist modal for the given donation.
+ * Resets all checkboxes and the Quality Verified button state so a
+ * previous inspection never carries over.
+ */
+function openFoodQualityChecklist(donationId){
+  _qcDonationId=donationId;
+  document.querySelectorAll('.qc-check').forEach(cb=>cb.checked=false);
+  updateQualityVerifiedButtonState();
+  const modalEl=document.getElementById('foodQualityChecklistModal');
+  if(!modalEl)return;
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+/**
+ * Enables the "Quality Verified" button only once all five checklist
+ * items are checked.
+ */
+function updateQualityVerifiedButtonState(){
+  const checks=document.querySelectorAll('.qc-check');
+  const allChecked=checks.length>0&&Array.from(checks).every(cb=>cb.checked);
+  const btn=document.getElementById('qcVerifiedBtn');
+  if(btn)btn.disabled=!allChecked;
+}
+
+/**
+ * Volunteer clicked "Quality Verified" in the checklist modal.
+ * Closes the modal and continues with the existing, unmodified
+ * approveFoodQuality() workflow — no duplicate status logic.
+ */
+function confirmQualityVerified(){
+  if(!_qcDonationId)return;
+  const modalEl=document.getElementById('foodQualityChecklistModal');
+  if(modalEl)bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+  approveFoodQuality(_qcDonationId);
+  _qcDonationId=null;
+}
+
+/**
+ * Volunteer clicked "Rejected (Quality Issue)" in the checklist modal.
+ * Swaps to the Reason for Rejection modal.
+ */
+function openRejectionReasonModal(){
+  const qcModalEl=document.getElementById('foodQualityChecklistModal');
+  if(qcModalEl)bootstrap.Modal.getOrCreateInstance(qcModalEl).hide();
+  const textEl=document.getElementById('rejectionReasonText');
+  if(textEl)textEl.value='';
+  updateRejectionSubmitState();
+  const modalEl=document.getElementById('rejectionReasonModal');
+  if(!modalEl)return;
+  modalEl.addEventListener('shown.bs.modal',function onShown(){
+    if(textEl)textEl.focus();
+    modalEl.removeEventListener('shown.bs.modal',onShown);
+  });
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+/**
+ * Volunteer backed out of the rejection reason step — return to the
+ * checklist modal without losing their checklist progress.
+ */
+function cancelRejectionReason(){
+  const modalEl=document.getElementById('rejectionReasonModal');
+  if(modalEl)bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+  const qcModalEl=document.getElementById('foodQualityChecklistModal');
+  if(!qcModalEl)return;
+  qcModalEl.addEventListener('shown.bs.modal',function onShown(){
+    qcModalEl.removeEventListener('shown.bs.modal',onShown);
+  });
+  bootstrap.Modal.getOrCreateInstance(qcModalEl).show();
+}
+
+/**
+ * Enables the "Confirm Rejection" button only once a reason has been
+ * entered, as required.
+ */
+function updateRejectionSubmitState(){
+  const textEl=document.getElementById('rejectionReasonText');
+  const btn=document.getElementById('rejectionSubmitBtn');
+  if(!textEl||!btn)return;
+  btn.disabled=textEl.value.trim().length===0;
+}
+
+/**
+ * Volunteer confirmed the rejection reason. Closes the modal and
+ * continues with the existing, unmodified rejectDonationByVolunteer()
+ * workflow (status update, timer stop, notifications, dashboard sync)
+ * — no duplicate synchronization logic.
+ */
+function submitRejectionReason(){
+  const textEl=document.getElementById('rejectionReasonText');
+  const reason=textEl?textEl.value.trim():'';
+  if(!reason)return;
+  if(!_qcDonationId)return;
+  const modalEl=document.getElementById('rejectionReasonModal');
+  if(modalEl)bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+  rejectDonationByVolunteer(_qcDonationId,reason);
+  _qcDonationId=null;
 }
